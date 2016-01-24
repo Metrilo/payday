@@ -260,6 +260,7 @@ module Payday
                align: :right)
         ]
       end
+
       table_data << [
         bold_cell(pdf, I18n.t("payday.invoice.total", default: "Total:", locale: invoice.invoice_locale),
                   size: 9),
@@ -269,15 +270,16 @@ module Payday
 
       # local currency
       if invoice.local_currency
+        local_currency_value = (invoice.total * invoice.currency_exchange_float).round(2)
 
         table_data << [
           bold_cell(pdf, invoice.local_currency),
-          cell(pdf, invoice.local_currency_value, align: :right)
+          cell(pdf, local_currency_value, align: :right)
         ]
       end
 
 
-      table = pdf.make_table(table_data, cell_style: { borders: [] })
+      table = pdf.make_table(table_data, cell_style: { borders: [] }, width: 120)
       pdf.bounding_box([pdf.bounds.width - table.width, pdf.cursor],
                        width: table.width, height: table.height + 2) do
 
