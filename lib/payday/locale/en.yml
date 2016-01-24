@@ -14,6 +14,7 @@ en:
       shipping: "Shipping:"
       tax: "Tax:"
       total: "Total:"
+      currency_exchange: 'Exchange:'
     line_item:
       description: Description
       unit_price: Unit Price

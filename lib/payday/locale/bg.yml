@@ -1,0 +1,23 @@
+bg:
+  payday:
+    status:
+      paid: ПЛАТЕНА
+      overdue: НЕ Е ПЛАТЕНА
+      refunded: ВЪРНАТА
+    invoice:
+      bill_to: Издадена на
+      ship_to: Изпращане на
+      invoice_no: "Фактура #:"
+      invoice_date: "Дата:"
+      due_date: "Падеж:"
+      paid_date: "Дата на плащане:"
+      subtotal: "Сума:"
+      shipping: "Доставка:"
+      tax: "Данък:"
+      total: "Общо:"
+      currency_exchange: 'Курс:'
+    line_item:
+      description: Описание
+      unit_price: Ед.
+      quantity: Количество
+      amount: Сума

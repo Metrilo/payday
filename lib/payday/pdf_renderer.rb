@@ -17,8 +17,14 @@ module Payday
     def self.pdf(invoice)
       pdf = Prawn::Document.new(page_size: invoice_or_default(invoice, :page_size))
 
+      # add Open Sans
+      pdf.font_families.update(
+          'OpenSans' => { :normal => Rails.root.join("lib/assets/fonts/opensans-regular.ttf"),
+                       :bold   => Rails.root.join("lib/assets/fonts/opensans-bold.ttf") }
+      )
+      pdf.font('OpenSans')
       # set up some default styling
-      pdf.font_size(8)
+      pdf.font_size(9)
 
       stamp(invoice, pdf)
       company_banner(invoice, pdf)
@@ -36,11 +42,11 @@ module Payday
     def self.stamp(invoice, pdf)
       stamp = nil
       if invoice.refunded?
-        stamp = I18n.t "payday.status.refunded", default: "REFUNDED"
+        stamp = I18n.t "payday.status.refunded", default: "REFUNDED", locale: invoice.invoice_locale
       elsif invoice.paid?
-        stamp = I18n.t "payday.status.paid", default: "PAID"
+        stamp = I18n.t "payday.status.paid", default: "PAID", locale: invoice.invoice_locale
       elsif invoice.overdue?
-        stamp = I18n.t "payday.status.overdue", default: "OVERDUE"
+        stamp = I18n.t "payday.status.overdue", default: "OVERDUE", locale: invoice.invoice_locale
       end
 
       if stamp
@@ -96,14 +102,14 @@ module Payday
 
       # render bill to
       pdf.float do
-        table = pdf.table([[bold_cell(pdf, I18n.t("payday.invoice.bill_to", default: "Bill To"))],
+        table = pdf.table([[bold_cell(pdf, I18n.t("payday.invoice.bill_to", default: "Bill To", locale: invoice.invoice_locale))],
                            [invoice.bill_to]], column_widths: [200], cell_style: bill_to_cell_style)
         bill_to_ship_to_bottom = pdf.cursor
       end
 
       # render ship to
       if defined?(invoice.ship_to) && !invoice.ship_to.nil?
-        table = pdf.make_table([[bold_cell(pdf, I18n.t("payday.invoice.ship_to", default: "Ship To"))],
+        table = pdf.make_table([[bold_cell(pdf, I18n.t("payday.invoice.ship_to", default: "Ship To", locale: invoice.invoice_locale))],
                                 [invoice.ship_to]], column_widths: [200], cell_style: bill_to_cell_style)
 
         pdf.bounding_box([pdf.bounds.width - table.width, pdf.cursor], width: table.width, height: table.height + 2) do
@@ -122,7 +128,7 @@ module Payday
 
       # invoice number
       if defined?(invoice.invoice_number) && invoice.invoice_number
-        table_data << [bold_cell(pdf, I18n.t("payday.invoice.invoice_no", default: "Invoice #:")),
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.invoice_no", default: "Invoice #:", locale: invoice.invoice_locale)),
                        bold_cell(pdf, invoice.invoice_number.to_s, align: :right)]
       end
 
@@ -134,7 +140,7 @@ module Payday
           invoice_date = invoice.invoice_date.to_s
         end
 
-        table_data << [bold_cell(pdf, I18n.t("payday.invoice.invoice_date", default: "Invoice Date:")),
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.invoice_date", default: "Invoice Date:", locale: invoice.invoice_locale)),
                        bold_cell(pdf, invoice_date, align: :right)]
       end
 
@@ -146,7 +152,7 @@ module Payday
           due_date = invoice.due_at.to_s
         end
 
-        table_data << [bold_cell(pdf, I18n.t("payday.invoice.due_date", default: "Due Date:")),
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.due_date", default: "Due Date:", locale: invoice.invoice_locale)),
                        bold_cell(pdf, due_date, align: :right)]
       end
 
@@ -158,7 +164,7 @@ module Payday
           paid_date = invoice.paid_at.to_s
         end
 
-        table_data << [bold_cell(pdf, I18n.t("payday.invoice.paid_date", default: "Paid Date:")),
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.paid_date", default: "Paid Date:", locale: invoice.invoice_locale)),
                        bold_cell(pdf, paid_date, align: :right)]
       end
 
@@ -170,8 +176,14 @@ module Payday
           refunded_date = invoice.refunded_at.to_s
         end
 
-        table_data << [bold_cell(pdf, I18n.t("payday.invoice.refunded_date", default: "Refunded Date:")),
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.refunded_date", default: "Refunded Date:", locale: invoice.invoice_locale)),
                        bold_cell(pdf, refunded_date, align: :right)]
+      end
+
+      # invoice number
+      if defined?(invoice.currency_exchange_rate) && invoice.currency_exchange_rate
+        table_data << [bold_cell(pdf, I18n.t("payday.invoice.currency_exchange", default: "Currency Exchange:", locale: invoice.invoice_locale)),
+                       bold_cell(pdf, invoice.currency_exchange_rate, align: :right)]
       end
 
       # loop through invoice_details and include them
@@ -187,10 +199,10 @@ module Payday
 
     def self.line_items_table(invoice, pdf)
       table_data = []
-      table_data << [bold_cell(pdf, I18n.t("payday.line_item.description", default: "Description"), borders: []),
-                     bold_cell(pdf, I18n.t("payday.line_item.unit_price", default: "Unit Price"), align: :center, borders: []),
-                     bold_cell(pdf, I18n.t("payday.line_item.quantity", default: "Quantity"), align: :center, borders: []),
-                     bold_cell(pdf, I18n.t("payday.line_item.amount", default: "Amount"), align: :center, borders: [])]
+      table_data << [bold_cell(pdf, I18n.t("payday.line_item.description", default: "Description", locale: invoice.invoice_locale), borders: []),
+                     bold_cell(pdf, I18n.t("payday.line_item.unit_price", default: "Unit Price", locale: invoice.invoice_locale), align: :center, borders: []),
+                     bold_cell(pdf, I18n.t("payday.line_item.quantity", default: "Quantity", locale: invoice.invoice_locale), align: :center, borders: []),
+                     bold_cell(pdf, I18n.t("payday.line_item.amount", default: "Amount", locale: invoice.invoice_locale), align: :center, borders: [])]
       invoice.line_items.each do |line|
         table_data << [line.description,
                        (line.display_price || number_to_currency(line.price, invoice)),
@@ -218,13 +230,13 @@ module Payday
     def self.totals_lines(invoice, pdf)
       table_data = []
       table_data << [
-        bold_cell(pdf, I18n.t("payday.invoice.subtotal", default: "Subtotal:")),
+        bold_cell(pdf, I18n.t("payday.invoice.subtotal", default: "Subtotal:", locale: invoice.invoice_locale)),
         cell(pdf, number_to_currency(invoice.subtotal, invoice), align: :right)
       ]
 
       if invoice.tax_rate > 0
         if invoice.tax_description.nil?
-          tax_description = I18n.t("payday.invoice.tax", default: "Tax:")
+          tax_description = I18n.t("payday.invoice.tax", default: "Tax:", locale: invoice.invoice_locale)
         else
           tax_description = invoice.tax_description
         end
@@ -237,7 +249,7 @@ module Payday
       if invoice.shipping_rate > 0
         if invoice.shipping_description.nil?
           shipping_description =
-            I18n.t("payday.invoice.shipping", default: "Shipping:")
+            I18n.t("payday.invoice.shipping", default: "Shipping:", locale: invoice.invoice_locale)
         else
           shipping_description = invoice.shipping_description
         end
@@ -249,11 +261,22 @@ module Payday
         ]
       end
       table_data << [
-        bold_cell(pdf, I18n.t("payday.invoice.total", default: "Total:"),
-                  size: 12),
+        bold_cell(pdf, I18n.t("payday.invoice.total", default: "Total:", locale: invoice.invoice_locale),
+                  size: 9),
         cell(pdf, number_to_currency(invoice.total, invoice),
-             size: 12, align: :right)
+             size: 9, align: :right)
       ]
+
+      # local currency
+      if invoice.local_currency
+
+        table_data << [
+          bold_cell(pdf, invoice.local_currency),
+          cell(pdf, invoice.local_currency_value, align: :right)
+        ]
+      end
+
+
       table = pdf.make_table(table_data, cell_style: { borders: [] })
       pdf.bounding_box([pdf.bounds.width - table.width, pdf.cursor],
                        width: table.width, height: table.height + 2) do
@@ -265,8 +288,8 @@ module Payday
     def self.notes(invoice, pdf)
       if defined?(invoice.notes) && invoice.notes
         pdf.move_cursor_to(pdf.cursor - 30)
-        pdf.font("Helvetica-Bold") do
-          pdf.text(I18n.t("payday.invoice.notes", default: "Notes"))
+        pdf.font("OpenSans") do
+          pdf.text(I18n.t("payday.invoice.notes", default: "Notes", locale: invoice.invoice_locale), style: :bold)
         end
         pdf.line_width = 0.5
         pdf.stroke_color = "cccccc"
