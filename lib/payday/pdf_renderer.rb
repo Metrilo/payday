@@ -49,10 +49,14 @@ module Payday
         stamp = I18n.t "payday.status.overdue", default: "OVERDUE", locale: invoice.invoice_locale
       end
 
+      if invoice.invoice_stamp
+        stamp = invoice.invoice_stamp
+      end
+
       if stamp
         pdf.bounding_box([150, pdf.cursor - 50], width: pdf.bounds.width - 300) do
-          pdf.font("Helvetica-Bold") do
-            pdf.fill_color "cc0000"
+          pdf.font("OpenSans") do
+            pdf.fill_color "cccccc"
             pdf.text stamp, align: :center, size: 25, rotate: 15
           end
         end
