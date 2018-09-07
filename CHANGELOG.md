@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.2.0 (2018-09-07)
+* Bumped ruby version to 2.5.1 from 2.1.5
+* Bumped money gem to 6.9 from 6.6
+* Bumped rspec gem to 3.5 from 3.1
+* Fix initializing Payday::Invoice.new with default values
+* Package with OpenSans font and remove dependency to Rails
+* Fix breaking specs when rendering with OpenSans font
+
 ## 1.1.4 (2015-05-29)
 
 * Bumped money gem to 6.5 (was 6.1.1)

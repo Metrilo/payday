@@ -17,12 +17,24 @@ module Payday
     def self.pdf(invoice)
       pdf = Prawn::Document.new(page_size: invoice_or_default(invoice, :page_size))
 
-      # add Open Sans
-      pdf.font_families.update(
-          'OpenSans' => { :normal => Rails.root.join("lib/assets/fonts/opensans-regular.ttf"),
-                       :bold   => Rails.root.join("lib/assets/fonts/opensans-bold.ttf") }
-      )
+      if defined? Rails
+        pdf.font_families.update(
+          'OpenSans' => {
+            :normal => Rails.root.join("lib/assets/fonts/opensans-regular.ttf"),
+            :bold   => Rails.root.join("lib/assets/fonts/opensans-bold.ttf")
+          }
+        )
+      else
+        pdf.font_families.update(
+          'OpenSans' => {
+            :normal => "lib/payday/fonts/opensans-regular.ttf",
+            :bold   => "lib/payday/fonts/opensans-bold.ttf"
+          }
+        )
+      end
+
       pdf.font('OpenSans')
+
       # set up some default styling
       pdf.font_size(9)
 
